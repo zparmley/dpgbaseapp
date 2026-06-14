@@ -1,3 +1,3 @@
 # DPGBaseApp
 
-A set of utilities to facilitate building DPG apps
+A set of base structures to facilitate building DPG apps
