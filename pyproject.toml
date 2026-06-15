@@ -1,6 +1,6 @@
 [project]
 name = "dpgbaseapp"
-version = "0.1.0"
+version = "0.1.1"
 description = "A set of base structures to facilitate building DearPyGui apps"
 readme = "README.md"
 requires-python = ">=3.12"

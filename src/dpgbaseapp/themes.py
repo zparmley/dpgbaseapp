@@ -1,4 +1,5 @@
 import dataclasses
+import typing
 
 import dearpygui.dearpygui as dpg
 
@@ -124,9 +125,9 @@ class Theme:
     colorscheme: Colorscheme
     _theme_id: int | str | None = None
 
-    def initialize(self):
+    def initialize(self) -> str | int:
         if self._theme_id is not None:
-            return
+            return self._theme_id
         with dpg.theme() as theme_id:
             with dpg.theme_component(0):
                 for field in dataclasses.fields(self.colors):
@@ -148,7 +149,9 @@ class Theme:
                         category = dpg.mvThemeCat_Core
 
                     dpg.add_theme_color(getattr(dpg, attr_name), value, category=category)
+        theme_id = typing.cast(str, theme_id)
         self._theme_id = theme_id
+        return self._theme_id
 
     def bind(self, target: int | str | None = None):
         self.initialize()

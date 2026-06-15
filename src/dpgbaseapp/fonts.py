@@ -94,6 +94,18 @@ class RealizedFontConfig:
 
 
 @dataclasses.dataclass
+class RealizedFont:
+    config: RealizedFontConfig
+    tag: str | int
+
+    def apply(self, target: str | int | None):
+        if target is None:
+            dpg.bind_font(self.tag)
+        else:
+            dpg.bind_item_font(target, self.tag)
+
+
+@dataclasses.dataclass
 class Font:
     name: str
     extension: typing.Literal['.ttf', '.otf']
@@ -170,6 +182,10 @@ class FontLibrary:
         self.realized_fonts[config] = font
 
         return font
+
+    def get_realized_font(self, config: RealizedFontConfig) -> RealizedFont:
+        tag = self.realize_font(config)
+        return RealizedFont(config, tag)
 
     @property
     def default_realized_font_config(self) -> RealizedFontConfig:
