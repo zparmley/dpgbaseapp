@@ -1,11 +1,14 @@
 import dataclasses
 import typing
+import operator
 
 import dearpygui.dearpygui as dpg
 
 from dpgbaseapp.colorschemes import (
+    Base16Colorscheme,
     Colorscheme,
     default_colorschemes,
+    load_base16_colorschemes,
 )
 
 
@@ -314,6 +317,68 @@ def create_theme(colorscheme: Colorscheme) -> Theme:
         colorscheme
     )
 
+    
+def base16_to_colorscheme(colorscheme: Base16Colorscheme) -> Colorscheme:
+    """Translate a 16-swatch base16 palette into a rich ``Colorscheme``.
+
+    Base16 only defines ``base00``-``base0F``: eight background-to-foreground
+    greys (``base00``-``base07``) followed by eight accents (``base08``-``base0F``).
+    The :class:`Colorscheme` that :func:`create_theme` consumes wants a finer
+    structural ramp plus the full Catppuccin accent vocabulary, so we map the
+    swatches onto it using the standard base16 roles (the same mapping
+    Catppuccin's own base16 export uses)::
+
+        base00 base      base04 surface2     base08 red     base0C teal
+        base01 mantle    base05 text         base09 peach   base0D blue
+        base02 surface0  base06 light fg     base0A yellow  base0E mauve
+        base03 surface1  base07 lavender     base0B green   base0F flamingo
+
+    Base16 has no dedicated "crust" (``Sub_0``) or "overlay" shade, so those
+    reuse the nearest grey, and the single cyan/blue accents stand in for the
+    whole teal/sky/sapphire/blue family.
+    """
+    p = colorscheme.palette
+    return Colorscheme(
+        name=colorscheme.name,
+        # --- structural ramp (background -> foreground) ---
+        Sub_0=p.base01,       # no darker "crust" in base16; reuse the mantle
+        Sub_1=p.base01,       # base01: lighter background / mantle
+        Base=p.base00,        # base00: default background
+        Surface_0=p.base02,   # base02: selection background
+        Surface_1=p.base03,   # base03: comments / line highlight
+        Surface_2=p.base04,   # base04: dark foreground
+        Overlay=p.base04,     # no dedicated overlay; the dark foreground stands in
+        Text=p.base05,        # base05: default foreground
+        Subtext=p.base06,     # base06: light foreground
+        # --- accents (base08-base0F; cool tones are reused) ---
+        Rose=p.base06,        # rosewater
+        Pink=p.base0F,        # flamingo (nearest pink)
+        Mauve=p.base0E,       # primary accent
+        Peach=p.base09,
+        Yellow=p.base0A,
+        Green=p.base0B,
+        Teal=p.base0C,
+        Sky=p.base0C,         # base16 has one cyan; reuse it
+        Sapphire=p.base0D,    # base16 has one blue; reuse it
+        Blue=p.base0D,
+        Lavender=p.base07,
+    )
 
 
-default_themes = [create_theme(colorscheme) for colorscheme in default_colorschemes]
+def create_base16_theme(colorscheme: Base16Colorscheme) -> Theme:
+    """Build a Dear PyGui ``Theme`` from a tinted ``Base16Colorscheme``.
+
+    The base16 palette is translated into a :class:`Colorscheme` (see
+    :func:`base16_to_colorscheme`) and handed to :func:`create_theme`, so the
+    two theme builders stay in lock-step and only the colour translation lives
+    here.
+    """
+    return create_theme(base16_to_colorscheme(colorscheme))
+
+
+
+colorschemes = load_base16_colorschemes()
+default_themes = list(
+    create_base16_theme(colorscheme)
+    for colorscheme in sorted(colorschemes, key=operator.attrgetter('name'))
+)

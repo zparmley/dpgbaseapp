@@ -1,4 +1,86 @@
 import dataclasses
+import typing
+import itertools
+from collections import namedtuple
+
+import yaml
+
+from dpgbaseapp.config import TINTED_PATH
+
+
+Color = namedtuple('Color', ('red', 'green', 'blue'))
+
+
+@dataclasses.dataclass
+class Base16Palette:
+    base00: Color
+    base01: Color
+    base02: Color
+    base03: Color
+    base04: Color
+    base05: Color
+    base06: Color
+    base07: Color
+    base08: Color
+    base09: Color
+    base0A: Color
+    base0B: Color
+    base0C: Color
+    base0D: Color
+    base0E: Color
+    base0F: Color
+
+
+@dataclasses.dataclass
+class Base16Colorscheme:
+    system: str
+    name: str
+    author: str
+    variant: str
+    palette: Base16Palette
+    description: str | None = None
+    slug: str | None = None
+
+
+def _hex_to_rgb(hexstr: str) -> Color:
+    stripped = hexstr[1:]
+    pairs = itertools.batched(stripped, 2)
+    color = Color(*(
+        int(''.join(pair), base=16)
+        for pair in pairs
+    ))
+    return color
+
+
+def load_base16_colorscheme(name: str) -> Base16Colorscheme:
+    path = TINTED_PATH / 'base16' / name
+    if not (name.endswith('.yaml') or name.endswith('.yml')):
+        if path.with_suffix('.yaml').exists():
+            path = path.with_suffix('.yaml')
+        else:
+            path = path.with_suffix('.yml')
+
+    with path.open('rb') as handle:
+        colorscheme_bytes = handle.read()
+
+    colorscheme_dict = yaml.load(colorscheme_bytes, yaml.Loader)
+    palette_dict = colorscheme_dict.pop('palette')
+    palette = Base16Palette(**{
+        key: _hex_to_rgb(value)
+        for key, value in palette_dict.items()
+    })
+    colorscheme = Base16Colorscheme(**colorscheme_dict, palette=palette)
+    return colorscheme
+
+
+def load_base16_colorschemes() -> list[Base16Colorscheme]:
+    path = TINTED_PATH / 'base16'
+    colorschemes = list(
+        load_base16_colorscheme(entry.name)
+        for entry in path.iterdir()
+    )
+    return colorschemes
+
 
 
 @dataclasses.dataclass

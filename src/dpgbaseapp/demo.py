@@ -2,6 +2,7 @@ import math
 import typing
 
 import dearpygui.dearpygui as dpg
+from rich import print
 
 from dpgbaseapp.app import App
 from dpgbaseapp.style_selector import StyleSelector
@@ -23,6 +24,10 @@ class Demo(App):
 
     def cb_delink(self, sender, app_data):
         dpg.delete_item(app_data)
+
+    def cb_show_item_config(self, sender, app_data, user_data):
+        tag = user_data if user_data else sender
+        print(dpg.get_item_configuration(tag))
 
     def __init__(self):
         self.style_selector = StyleSelector.factory()
@@ -108,8 +113,8 @@ class Demo(App):
                         dpg.add_combo(items=["aaa", "bbb", "ccc"])
                         dpg.add_radio_button(items=["x", "y", "z"], horizontal=True)
                         with dpg.group(horizontal=True):
-                            dpg.add_button(label="Button 1")
-                            dpg.add_button(label="Button 2")
+                            dpg.add_button(label="Button 1", callback=self.cb_show_item_config, user_data=None)
+                            dpg.add_button(label="Button 2", callback=self.cb_show_item_config, user_data='window')
                         with dpg.group(horizontal=True):
                             dpg.add_selectable(label="Selectable 1", width=100)
                             dpg.add_selectable(label="Selectable 2", width=100)
