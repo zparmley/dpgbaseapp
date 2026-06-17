@@ -1,10 +1,12 @@
 import math
+from numbers import Real
 import typing
 
 import dearpygui.dearpygui as dpg
 from rich import print
 
 from dpgbaseapp.app import App
+from dpgbaseapp.fonts import RealizedFont, RealizedFontConfig
 from dpgbaseapp.style_selector import StyleSelector
 
 
@@ -29,9 +31,17 @@ class Demo(App):
         tag = user_data if user_data else sender
         print(dpg.get_item_configuration(tag))
 
-    def __init__(self):
-        self.style_selector = StyleSelector.factory()
-        self.targeted_style_selector = StyleSelector.factory(target="row_2")
+    @typing.override
+    def initialize(self):
+        self.style_selector.configure(
+            font_name='Montserrat',
+            font_variant='Medium',
+            font_size=14,
+            theme_name='UwUnicorn',
+        )
+        
+
+        self.targeted_style_selector: StyleSelector = StyleSelector.factory(target="row_2")
 
         self.sindatax = []
         self.sindatay = []
@@ -41,8 +51,27 @@ class Demo(App):
 
     @typing.override
     def setup(self):
-        self.style_selector.apply()
+        # Setting up fonts for tag_styler
+        pre_font_name = 'PragmataProMono'
+        pre_font_size = 14
 
+        font_configs = {
+            'pre': RealizedFontConfig(pre_font_name, 'Regular', pre_font_size),
+            'pre_bold': RealizedFontConfig(pre_font_name, 'Bold', pre_font_size),
+            'pre_italic': RealizedFontConfig(pre_font_name, 'Italic', pre_font_size),
+            'pre_bold_italic': RealizedFontConfig(pre_font_name, 'BoldItalic', pre_font_size),
+            'heading_3': RealizedFontConfig(pre_font_name, 'Bold', pre_font_size + 2),
+            'heading_2': RealizedFontConfig(pre_font_name, 'Bold', pre_font_size + 4),
+            'heading_1': RealizedFontConfig(pre_font_name, 'Bold', pre_font_size + 6),
+        }
+        fonts: dict[str, RealizedFont] = {
+            key: self.style_selector.font_library.get_realized_font(config)
+            for key, config in font_configs.items()
+        }
+        for key, font in fonts.items():
+            self.tag_styler.style(key, font)
+        
+        # Make style_selectors accessible via menu
         with dpg.viewport_menu_bar():
             with dpg.menu(label='Style Selector'):
                 dpg.add_menu_item(label='Global', callback=self.style_selector.cb_show)
@@ -124,6 +153,16 @@ class Demo(App):
                             dpg.add_checkbox(label="Check You", default_value=False)
                         with dpg.tab_bar():
                             with dpg.tab(label="Tab 1"):
+                                ts = self.tag_styler.tag
+                                with dpg.child_window(tag=ts('pre'), label='pre'):
+                                    dpg.add_text('Heading 1', tag=ts('heading_1'), bullet=True)
+                                    dpg.add_text('Heading 2', tag=ts('heading_2'), bullet=True)
+                                    dpg.add_text('Heading 3', tag=ts('heading_3'), bullet=True)
+                                    dpg.add_text('normal text')
+                                    dpg.add_text('bold text', tag=ts('pre_bold'))
+                                    dpg.add_text('italic text', tag=ts('pre_italic'))
+                                    dpg.add_text('bold italic text', tag=ts('pre_bold_italic'))
+
                                 dpg.add_text("tab 1 content")
                             with dpg.tab(label="Tab 2"):
                                 dpg.add_text("tab 2 content")

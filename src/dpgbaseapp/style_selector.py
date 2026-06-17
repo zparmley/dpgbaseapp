@@ -82,11 +82,37 @@ class StyleSelector:
         else:
             dpg.bind_font(font)
 
+    def configure(
+        self,
+        font_name: str | None = None,
+        font_variant: str | None = None,
+        font_size: int | None = None,
+        theme_name: str | None = None,
+    ):
+        font_name = font_name if font_name else self.font_config.name
+        font_variant = font_variant if font_variant else self.font_config.variant
+        font_size = font_size if font_size else self.font_config.size
+        self.font_config = dataclasses.replace(
+            self.font_config,
+            name=font_name,
+            variant=font_variant,
+            size=font_size,
+        )
+        if theme_name is not None:
+            found: bool = False
+            for theme in self.themes:
+                if theme.name == theme_name:
+                    self.theme = theme
+                    found = True
+                    break
+            if not found:
+                raise ValueError(theme_name)
+
+
     def cb_show(self, sender, app_data, user_data):
         self.render()
         dpg.show_item(self.tag('window'))
         
-
 
     def cb_theme(self, sender: str | int, app_data: typing.Any, user_data: typing.Any) -> None:
         for theme in self.themes:

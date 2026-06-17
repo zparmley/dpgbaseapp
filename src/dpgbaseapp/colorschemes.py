@@ -1,5 +1,4 @@
 import dataclasses
-import typing
 import itertools
 from collections import namedtuple
 
@@ -8,7 +7,8 @@ import yaml
 from dpgbaseapp.config import TINTED_PATH
 
 
-Color = namedtuple('Color', ('red', 'green', 'blue'))
+type Color = tuple[int, int, int] | tuple[int, int, int, int]
+
 
 
 @dataclasses.dataclass
@@ -45,10 +45,10 @@ class Base16Colorscheme:
 def _hex_to_rgb(hexstr: str) -> Color:
     stripped = hexstr[1:]
     pairs = itertools.batched(stripped, 2)
-    color = Color(*(
+    color = tuple(
         int(''.join(pair), base=16)
         for pair in pairs
-    ))
+    )
     return color
 
 
