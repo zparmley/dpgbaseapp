@@ -1,6 +1,6 @@
 import dataclasses
 import itertools
-from collections import namedtuple
+from typing import override
 
 import yaml
 
@@ -30,7 +30,6 @@ class Base16Palette:
     base0E: Color
     base0F: Color
 
-
 @dataclasses.dataclass
 class Base16Colorscheme:
     system: str
@@ -49,6 +48,7 @@ def _hex_to_rgb(hexstr: str) -> Color:
         int(''.join(pair), base=16)
         for pair in pairs
     )
+    assert len(color) == 3
     return color
 
 
@@ -86,26 +86,27 @@ def load_base16_colorschemes() -> list[Base16Colorscheme]:
 @dataclasses.dataclass
 class Colorscheme:
     name: str
-    Sub_0: tuple[int, int, int]
-    Sub_1: tuple[int, int, int]
-    Base: tuple[int, int, int]
-    Overlay: tuple[int, int, int]
-    Surface_0: tuple[int, int, int]
-    Surface_1: tuple[int, int, int]
-    Surface_2: tuple[int, int, int]
-    Text: tuple[int, int, int]
-    Subtext: tuple[int, int, int]
-    Rose: tuple[int, int, int]
-    Pink: tuple[int, int, int]
-    Mauve: tuple[int, int, int]
-    Peach: tuple[int, int, int]
-    Yellow: tuple[int, int, int]
-    Green: tuple[int, int, int]
-    Teal: tuple[int, int, int]
-    Sky: tuple[int, int, int]
-    Sapphire: tuple[int, int, int]
-    Blue: tuple[int, int, int]
-    Lavender: tuple[int, int, int]
+    Sub_0: Color
+    Sub_1: Color
+    Base: Color
+    Overlay: Color
+    Surface_0: Color
+    Surface_1: Color
+    Surface_2: Color
+    Text: Color
+    Subtext: Color
+    Rose: Color
+    Pink: Color
+    Mauve: Color
+    Peach: Color
+    Yellow: Color
+    Green: Color
+    Teal: Color
+    Sky: Color
+    Sapphire: Color
+    Blue: Color
+    Lavender: Color
+    source: Base16Colorscheme |  None = None
 
 
 Latte = Colorscheme(
@@ -291,3 +292,93 @@ Dusk = Colorscheme(
 
 
 default_colorschemes: tuple[Colorscheme, ...] = (Latte, Frappe, Macchiato, Mocha, Cthulu, Abyss, Dusk)
+
+
+if __name__ == '__main__':
+    import typing
+    
+    import dearpygui.dearpygui as dpg
+
+    from dpgbaseapp.app import App
+
+    @typing.final
+    class ColorschemeViewer(App):
+        title = 'Colorscheme Viewer'
+        primary_window = 'window'
+
+        @typing.override
+        def initialize(self):
+            self.colorschemes = load_base16_colorschemes()
+            self.bg_color = (255, 255, 255)
+
+        @typing.override
+        def render(self):
+            with dpg.window(tag='window'):
+                with dpg.table(header_row=False):
+                    dpg.add_table_column()
+
+                    with dpg.table_row():
+                        with dpg.group():
+                            dpg.add_combo(
+                                tag='colorscheme_name',
+                                items=sorted(colorscheme.name for colorscheme in self.colorschemes),
+                                callback=self.cb_colorscheme_selected,
+                            )
+                            dpg.add_slider_int(
+                                tag='background_color',
+                                min_value=0,
+                                max_value=255,
+                                default_value=self.bg_color[0],
+                                label='Background',
+                                callback=self.cb_background,
+                            )
+
+                    with dpg.table_row():
+                        dpg.add_drawlist(
+                            tag='colorscheme_display',
+                            width=dpg.get_viewport_width(),
+                            height=dpg.get_viewport_height() - 50,
+                        )
+        @override
+        def post_render(self):
+            self.run_in_future_frame(self.cb_background)
+
+        def cb_background(self):
+            bg_color_selection = dpg.get_value('background_color')
+            self.bg_color = (bg_color_selection, bg_color_selection, bg_color_selection)
+            self.cb_colorscheme_selected()
+
+        def cb_colorscheme_selected(self):
+            colorscheme_name = dpg.get_value('colorscheme_name')
+            if colorscheme_name:
+                for colorscheme in self.colorschemes:
+                    if colorscheme.name == colorscheme_name:
+                        break
+                palette = colorscheme.palette
+            else:
+                palette = None
+
+            width = dpg.get_item_width('colorscheme_display')
+            height = dpg.get_item_height('colorscheme_display')
+
+            dpg.delete_item('colorscheme_display', children_only=True)
+            dpg.push_container_stack('colorscheme_display')
+            
+            dpg.draw_rectangle((0, 0), (width, height), color=self.bg_color, fill=self.bg_color)
+
+            if palette is not None:
+                x_offset = 10
+                y_offset = 10
+
+                for color_field in dataclasses.fields(palette):
+                    color_name = color_field.name
+                    color = getattr(palette, color_name)
+                    dpg.draw_text(pos=(x_offset, y_offset), text=color_name, color=color, size=25)
+                    y_offset += 20
+                    print(color)
+
+            dpg.pop_container_stack()
+
+
+
+    ColorschemeViewer.run()

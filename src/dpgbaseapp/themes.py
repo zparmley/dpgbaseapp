@@ -6,6 +6,7 @@ import dearpygui.dearpygui as dpg
 
 from dpgbaseapp.colorschemes import (
     Base16Colorscheme,
+    Color,
     Colorscheme,
     default_colorschemes,
     load_base16_colorschemes,
@@ -13,112 +14,110 @@ from dpgbaseapp.colorschemes import (
 
 
 
-type ThemeColor = tuple[int, int, int] | tuple[int, int, int, int]
-
 @dataclasses.dataclass
 class ThemeColors:
-    Text: ThemeColor
-    TextDisabled: ThemeColor
-    WindowBg: ThemeColor
-    ChildBg: ThemeColor
-    PopupBg: ThemeColor
-    Border: ThemeColor
-    BorderShadow: ThemeColor
-    FrameBg: ThemeColor
-    FrameBgHovered: ThemeColor
-    FrameBgActive: ThemeColor
-    TitleBg: ThemeColor
-    TitleBgActive: ThemeColor
-    TitleBgCollapsed: ThemeColor
-    MenuBarBg: ThemeColor
-    ScrollbarBg: ThemeColor
-    ScrollbarGrab: ThemeColor
-    ScrollbarGrabHovered: ThemeColor
-    ScrollbarGrabActive: ThemeColor
-    CheckMark: ThemeColor
-    SliderGrab: ThemeColor
-    SliderGrabActive: ThemeColor
-    Button: ThemeColor
-    ButtonHovered: ThemeColor
-    ButtonActive: ThemeColor
-    Header: ThemeColor
-    HeaderHovered: ThemeColor
-    HeaderActive: ThemeColor
-    Separator: ThemeColor
-    SeparatorHovered: ThemeColor
-    SeparatorActive: ThemeColor
-    ResizeGrip: ThemeColor
-    ResizeGripHovered: ThemeColor
-    ResizeGripActive: ThemeColor
-    InputTextCursor: ThemeColor
-    TabHovered: ThemeColor
-    Tab: ThemeColor
-    TabSelected: ThemeColor
-    TabSelectedOverline: ThemeColor
-    TabDimmed: ThemeColor
-    TabDimmedSelected: ThemeColor
-    TabDimmedSelectedOverline: ThemeColor
-    DockingPreview: ThemeColor
-    DockingEmptyBg: ThemeColor
-    PlotLines: ThemeColor
-    PlotLinesHovered: ThemeColor
-    PlotHistogram: ThemeColor
-    PlotHistogramHovered: ThemeColor
-    TableHeaderBg: ThemeColor
-    TableBorderStrong: ThemeColor
-    TableBorderLight: ThemeColor
-    TableRowBg: ThemeColor
-    TableRowBgAlt: ThemeColor
-    TextSelectedBg: ThemeColor
-    TreeLines: ThemeColor
-    DragDropTarget: ThemeColor
-    DragDropTargetBg: ThemeColor
-    UnsavedMarker: ThemeColor
-    NavCursor: ThemeColor
-    NavWindowingHighlight  : ThemeColor
-    NavWindowingDimBg: ThemeColor
-    ModalWindowDimBg: ThemeColor
-    Plot_FrameBg: ThemeColor
-    Plot_PlotBg: ThemeColor
-    Plot_PlotBorder: ThemeColor
-    Plot_LegendBg: ThemeColor
-    Plot_LegendBorder: ThemeColor
-    Plot_LegendText: ThemeColor
-    Plot_TitleText: ThemeColor
-    Plot_InlayText: ThemeColor
-    Plot_AxisText: ThemeColor
-    Plot_AxisGrid: ThemeColor
-    Plot_AxisTick: ThemeColor
-    Plot_Selection: ThemeColor
-    Plot_Crosshairs: ThemeColor
-    Node_NodeBackground: ThemeColor
-    Node_NodeBackgroundHovered: ThemeColor
-    Node_NodeBackgroundSelected  : ThemeColor
-    Node_NodeOutline: ThemeColor
-    Node_TitleBar: ThemeColor
-    Node_TitleBarHovered: ThemeColor
-    Node_TitleBarSelected: ThemeColor
-    Node_Link: ThemeColor
-    Node_LinkHovered: ThemeColor
-    Node_LinkSelected: ThemeColor
-    Node_Pin: ThemeColor
-    Node_PinHovered: ThemeColor
-    Node_BoxSelector: ThemeColor
-    Node_BoxSelectorOutline: ThemeColor
-    Node_GridBackground: ThemeColor
-    Node_GridLine: ThemeColor
-    Nodes_GridLinePrimary: ThemeColor
-    Nodes_MiniMapBackground: ThemeColor
-    Nodes_MiniMapBackgroundHovered: ThemeColor
-    Nodes_MiniMapOutline: ThemeColor
-    Nodes_MiniMapOutlineHovered  : ThemeColor
-    Nodes_MiniMapNodeBackground  : ThemeColor
-    Nodes_MiniMapNodeBackgroundSelected: ThemeColor
-    Nodes_MiniMapNodeOutline: ThemeColor
-    Nodes_MiniMapLink: ThemeColor
-    Nodes_MiniMapLinkSelected: ThemeColor
-    Nodes_MiniMapCanvas: ThemeColor
-    Nodes_MiniMapCanvasOutline: ThemeColor
+    Text: Color
+    TextDisabled: Color
+    WindowBg: Color
+    ChildBg: Color
+    PopupBg: Color
+    Border: Color
+    BorderShadow: Color
+    FrameBg: Color
+    FrameBgHovered: Color
+    FrameBgActive: Color
+    TitleBg: Color
+    TitleBgActive: Color
+    TitleBgCollapsed: Color
+    MenuBarBg: Color
+    ScrollbarBg: Color
+    ScrollbarGrab: Color
+    ScrollbarGrabHovered: Color
+    ScrollbarGrabActive: Color
+    CheckMark: Color
+    SliderGrab: Color
+    SliderGrabActive: Color
+    Button: Color
+    ButtonHovered: Color
+    ButtonActive: Color
+    Header: Color
+    HeaderHovered: Color
+    HeaderActive: Color
+    Separator: Color
+    SeparatorHovered: Color
+    SeparatorActive: Color
+    ResizeGrip: Color
+    ResizeGripHovered: Color
+    ResizeGripActive: Color
+    InputTextCursor: Color
+    TabHovered: Color
+    Tab: Color
+    TabSelected: Color
+    TabSelectedOverline: Color
+    TabDimmed: Color
+    TabDimmedSelected: Color
+    TabDimmedSelectedOverline: Color
+    DockingPreview: Color
+    DockingEmptyBg: Color
+    PlotLines: Color
+    PlotLinesHovered: Color
+    PlotHistogram: Color
+    PlotHistogramHovered: Color
+    TableHeaderBg: Color
+    TableBorderStrong: Color
+    TableBorderLight: Color
+    TableRowBg: Color
+    TableRowBgAlt: Color
+    TextSelectedBg: Color
+    TreeLines: Color
+    DragDropTarget: Color
+    DragDropTargetBg: Color
+    UnsavedMarker: Color
+    NavCursor: Color
+    NavWindowingHighlight  : Color
+    NavWindowingDimBg: Color
+    ModalWindowDimBg: Color
+    Plot_FrameBg: Color
+    Plot_PlotBg: Color
+    Plot_PlotBorder: Color
+    Plot_LegendBg: Color
+    Plot_LegendBorder: Color
+    Plot_LegendText: Color
+    Plot_TitleText: Color
+    Plot_InlayText: Color
+    Plot_AxisText: Color
+    Plot_AxisGrid: Color
+    Plot_AxisTick: Color
+    Plot_Selection: Color
+    Plot_Crosshairs: Color
+    Node_NodeBackground: Color
+    Node_NodeBackgroundHovered: Color
+    Node_NodeBackgroundSelected  : Color
+    Node_NodeOutline: Color
+    Node_TitleBar: Color
+    Node_TitleBarHovered: Color
+    Node_TitleBarSelected: Color
+    Node_Link: Color
+    Node_LinkHovered: Color
+    Node_LinkSelected: Color
+    Node_Pin: Color
+    Node_PinHovered: Color
+    Node_BoxSelector: Color
+    Node_BoxSelectorOutline: Color
+    Node_GridBackground: Color
+    Node_GridLine: Color
+    Nodes_GridLinePrimary: Color
+    Nodes_MiniMapBackground: Color
+    Nodes_MiniMapBackgroundHovered: Color
+    Nodes_MiniMapOutline: Color
+    Nodes_MiniMapOutlineHovered  : Color
+    Nodes_MiniMapNodeBackground  : Color
+    Nodes_MiniMapNodeBackgroundSelected: Color
+    Nodes_MiniMapNodeOutline: Color
+    Nodes_MiniMapLink: Color
+    Nodes_MiniMapLinkSelected: Color
+    Nodes_MiniMapCanvas: Color
+    Nodes_MiniMapCanvasOutline: Color
 
 
 @dataclasses.dataclass
@@ -180,7 +179,7 @@ def create_theme(colorscheme: Colorscheme) -> Theme:
     drag-drop in ``Yellow`` and node titles cycling through the warm accents.
     """
 
-    def a(color: tuple[int, int, int], alpha: int) -> ThemeColor:
+    def a(color: Color, alpha: int) -> Color:
         """Same colour with an explicit alpha (0-255)."""
         return (color[0], color[1], color[2], alpha)
 
@@ -347,6 +346,7 @@ def base16_to_colorscheme(colorscheme: Base16Colorscheme) -> Colorscheme:
         Surface_0=p.base02,   # base02: selection background
         Surface_1=p.base03,   # base03: comments / line highlight
         Surface_2=p.base04,   # base04: dark foreground
+
         Overlay=p.base04,     # no dedicated overlay; the dark foreground stands in
         Text=p.base05,        # base05: default foreground
         Subtext=p.base06,     # base06: light foreground
@@ -362,6 +362,7 @@ def base16_to_colorscheme(colorscheme: Base16Colorscheme) -> Colorscheme:
         Sapphire=p.base0D,    # base16 has one blue; reuse it
         Blue=p.base0D,
         Lavender=p.base07,
+        source=colorscheme,
     )
 
 
@@ -382,3 +383,6 @@ default_themes = list(
     create_base16_theme(colorscheme)
     for colorscheme in sorted(colorschemes, key=operator.attrgetter('name'))
 )
+
+for colorscheme in default_colorschemes:
+    default_themes.append(create_theme(colorscheme))

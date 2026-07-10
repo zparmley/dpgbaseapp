@@ -1,0 +1,10 @@
+{
+  "typeCheckingMode": "all",
+  "include": ["src"],
+  "exclude": ["**/node_modules", "**/__pycache__"],
+  "reportMissingTypeStubs": false,
+  "reportUnusedImport": "warning",
+  "reportUninitializedInstanceVariable": false,
+  "reportUnknownMemberType": false,
+  "reportUnusedCallResult": false
+}

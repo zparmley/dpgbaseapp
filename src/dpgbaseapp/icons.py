@@ -4,14 +4,15 @@ import itertools
 import pathlib
 import random
 import typing
-from unicodedata import name
 
 import cairosvg
 import dearpygui.dearpygui as dpg
 import numpy as np
 import PIL.Image
 
+from dpgbaseapp.config import CACHE_PATH
 from dpgbaseapp.config import REPOS_PATH
+from dpgbaseapp.config import SHARED_PATH
 from dpgbaseapp.colorschemes import Color
 
 
@@ -20,6 +21,7 @@ class IconRenderConfig:
     size: int
     fg_color: Color | None = None
     bg_color: Color | None = None
+    cache: bool = True
 
 
 @dataclasses.dataclass
@@ -33,12 +35,28 @@ class Icon:
         size: int | None = None,
         fg_color: Color | None = None,
         bg_color: Color | None = None,
+        cache: bool | None = None,
         render_config: IconRenderConfig | None = None,
     ) -> str | int:
         render_config = render_config if render_config else self.render_config
         size = size if size else render_config.size if render_config else None
-        bg_color = bg_color if bg_color else render_config.bg_color if render_config else None
         fg_color = fg_color if fg_color else render_config.fg_color if render_config else None
+        bg_color = bg_color if bg_color else render_config.bg_color if render_config else None
+        cache = cache if cache is not None else render_config.cache if render_config else False
+
+        key_parts = (size, fg_color, bg_color, self.svg_path.relative_to(SHARED_PATH))
+        key = ''.join(map(str, key_parts)).replace('/', '').replace(' ', '')
+        cached_path = CACHE_PATH / key
+
+        if cache and size:
+            if cached_path.exists():
+                text = cached_path.read_text()
+                float_strs = text.split(',')
+                floats = list(map(float, float_strs))
+                with dpg.texture_registry():
+                    texture = dpg.add_static_texture(width=size, height=size, default_value=floats)
+                return texture
+
 
         if size is None:
             raise ValueError(size)
@@ -58,10 +76,16 @@ class Icon:
             background = PIL.Image.new("RGBA", png_image.size, bg_color)
             png_image = PIL.Image.alpha_composite(background, png_image)
 
-        default_data = np.frombuffer(png_image.tobytes(), dtype=np.uint8) / 255.0
-        default_data = [float(value) / 255.0 for pixel in png_image.getdata() for value in pixel]
+        default_value = np.frombuffer(png_image.tobytes(), dtype=np.uint8) / 255.0
+        default_value = [float(value) / 255.0 for pixel in png_image.getdata() for value in pixel]
+
+        if cache and size:
+            floats_str = ','.join(map(str, default_value))
+            cached_path.write_text(floats_str)
+
         with dpg.texture_registry():
-            texture = dpg.add_static_texture(width=size, height=size, default_value=default_data)
+            texture = dpg.add_static_texture(width=size, height=size, default_value=default_value)
+
         return texture
 
 
@@ -88,11 +112,11 @@ class IconProvider:
     @property
     def names(self) -> list[str]:
         if self._names is None:
-            self._names = [
+            self._names = sorted(
                 self._remove_prefix(entry.stem)
                 for entry in self.path.iterdir()
-                if entry.is_file() and entry.suffix == '.svg'
-            ]
+                if entry.suffix == '.svg'
+            )
         return self._names
 
     def get_icon(self, name: str) -> Icon:
@@ -112,7 +136,7 @@ class IconLibrary:
     @property
     def names(self) -> list[str]:
         if self._names == None:
-            self._names = list({
+            self._names = sorted({
                 name
                 for provider in self.providers.values()
                 for name in provider.names
@@ -123,8 +147,8 @@ class IconLibrary:
     def factory(cls, render_config: IconRenderConfig | None = None) -> typing.Self:
         default_providers = [
             IconProvider('coreui_free', REPOS_PATH / 'coreui-icons/svg/free/', 'cil-', render_config),
-            IconProvider('coreui_flag', REPOS_PATH / 'coreui-icons/svg/flag/', 'cif-', render_config),
-            IconProvider('coreui_brand', REPOS_PATH / 'coreui-icons/svg/brand/', 'cib-', render_config),
+            # IconProvider('coreui_flag', REPOS_PATH / 'coreui-icons/svg/flag/', 'cif-', render_config),
+            # IconProvider('coreui_brand', REPOS_PATH / 'coreui-icons/svg/brand/', 'cib-', render_config),
             IconProvider('open_iconic', REPOS_PATH / 'open-iconic/svg/', None, render_config),
             IconProvider('tabler_filled', REPOS_PATH / 'tabler-icons/icons/filled/', None, render_config),
             IconProvider('tabler_outline', REPOS_PATH / 'tabler-icons/icons/outline/', None, render_config),
@@ -146,30 +170,3 @@ class IconLibrary:
                 pass
 
         raise ValueError(name)
-
-
-
-if __name__ == '__main__':
-    from dpgbaseapp.app import App
-    class IconsDemo(App):
-        def setup(self):
-            render_config = IconRenderConfig(
-                50,
-                self.style_selector.theme.colors.CheckMark,
-                self.style_selector.theme.colors.FrameBg,
-            )
-            library = IconLibrary.factory(render_config=render_config)
-            self.icon_names = random.sample(library.names, k=8*8)
-            self.icon_textures = [
-                library.get_icon(name).render()
-                for name in self.icon_names
-            ]
-
-        def render(self):
-            with dpg.window(width=500, height=500):
-                for batch in itertools.batched(self.icon_textures, 8):
-                    with dpg.group(horizontal=True):
-                        for texture in batch:
-                            dpg.add_image(texture, width=50, height=50)
-    
-    IconsDemo.run()

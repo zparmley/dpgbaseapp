@@ -1,4 +1,6 @@
+import collections.abc
 import dataclasses
+import enum
 import functools
 import pathlib
 import random
@@ -7,10 +9,16 @@ import typing
 
 import dearpygui.dearpygui as dpg
 
+from dpgbaseapp.config import FONTS_PATH
 from dpgbaseapp.fonts import FontLibrary
 from dpgbaseapp.fonts import RealizedFontConfig
 from dpgbaseapp.themes import Theme, default_themes
 
+
+class Unspecified(enum.Enum):
+    UNSPECIFIED = 'UNSPECIFIED'
+
+type UnspecifiedType = typing.Literal[Unspecified.UNSPECIFIED]
 
 @dataclasses.dataclass
 class StyleSelector:
@@ -26,19 +34,24 @@ class StyleSelector:
             9999999,
         ),
     )
+    on_apply: collections.abc.Callable[[], None] | None = None
     _labels: types.SimpleNamespace = dataclasses.field(default_factory=types.SimpleNamespace)
     _rendered: bool = False
 
     @classmethod
     def factory(
         cls,
+        *,
+        # theme_name: str | None = None,
         theme: Theme | None = None,
         themes: tuple[Theme, ...] | None = None,
         font_path: pathlib.Path | None = None,
         font_library: FontLibrary | None = None,
         font_config: RealizedFontConfig | None = None,
+        font_scaling: int = 0,
         target: str | int | None = None,
         prefix: str | int | None = None,
+        on_apply: collections.abc.Callable[[], None] | None = None,
     ):
         kwargs: dict[str, typing.Any] = {}
         if themes is None:
@@ -55,19 +68,24 @@ class StyleSelector:
             kwargs['font_library'] = font_library
         else:
             if font_path is None:
-                font_path = pathlib.Path.home() / '.local/share/dpgbaseapp/fonts'
+                font_path = FONTS_PATH
 
-            kwargs['font_library'] = FontLibrary.factory(font_path)
+            kwargs['font_library'] = FontLibrary.factory(font_path, font_scaling=font_scaling)
+
+        kwargs['font_library'].set_font_scaling(font_scaling)
 
         if font_config is None:
             kwargs['font_config'] = kwargs['font_library'].default_realized_font_config
         else:
             kwargs['font_config'] = font_config
 
+
         kwargs['target'] = target
 
         if prefix is not None:
             kwargs['prefix'] = prefix
+
+        kwargs['on_apply'] = on_apply
 
         return cls(**kwargs)  # pyright: ignore[reportAny]
 
@@ -76,18 +94,25 @@ class StyleSelector:
 
     def apply(self):
         self.theme.bind(self.target)
+
+        self.font_library.set_global_font_scale()
         font = self.font_library.realize_font(self.font_config)
         if self.target is not None:
             dpg.bind_item_font(self.target, font)
         else:
             dpg.bind_font(font)
 
+        if self.on_apply is not None:
+            self.on_apply()
+
     def configure(
         self,
         font_name: str | None = None,
         font_variant: str | None = None,
         font_size: int | None = None,
+        font_scaling: int | None = None,
         theme_name: str | None = None,
+        on_apply: collections.abc.Callable[[], None] | None | UnspecifiedType = Unspecified.UNSPECIFIED,
     ):
         font_name = font_name if font_name else self.font_config.name
         font_variant = font_variant if font_variant else self.font_config.variant
@@ -98,6 +123,8 @@ class StyleSelector:
             variant=font_variant,
             size=font_size,
         )
+        if font_scaling is not None:
+            self.font_library.set_font_scaling(font_scaling)
         if theme_name is not None:
             found: bool = False
             for theme in self.themes:
@@ -107,6 +134,8 @@ class StyleSelector:
                     break
             if not found:
                 raise ValueError(theme_name)
+        if on_apply is not Unspecified.UNSPECIFIED:
+            self.on_apply = on_apply
 
 
     def cb_show(self, sender, app_data, user_data):
@@ -154,7 +183,7 @@ class StyleSelector:
         )
         self.apply()
 
-    def render(self) -> str | int:
+    def render(self) -> str | int | None:
         if self._rendered:
             return
 
@@ -164,8 +193,8 @@ class StyleSelector:
             with dpg.group(horizontal=True):
                 with dpg.group():
                     self._labels.theme = dpg.add_text('Theme')
-                    dpg.add_listbox(
-                        items=list(theme.name for theme in self.themes),
+                    _ = dpg.add_listbox(
+                        items=sorted(theme.name for theme in self.themes),
                         callback=self.cb_theme,
                         tag=self.tag('theme'),
                         width=250,
@@ -174,8 +203,8 @@ class StyleSelector:
                     )
                 with dpg.group():
                     self._labels.fontname = dpg.add_text('Font Name')
-                    dpg.add_listbox(
-                        items=list(self.font_library.fonts),
+                    _ = dpg.add_listbox(
+                        items=sorted(self.font_library.fonts),
                         callback=self.cb_fontname,
                         tag=self.tag('fontname'),
                         width=250,
@@ -184,7 +213,7 @@ class StyleSelector:
                     )
                 with dpg.group():
                     self._labels.fontvariant = dpg.add_text('Font Variant')
-                    dpg.add_listbox(
+                    _ = dpg.add_listbox(
                         items=list(self.font_library.fonts[self.font_config.name].variants),
                         callback=self.cb_fontvariant,
                         tag=self.tag('fontvariant'),
@@ -194,7 +223,7 @@ class StyleSelector:
                     )
                 with dpg.group():
                     self._labels.fontsize = dpg.add_text('Font Size')
-                    dpg.add_listbox(
+                    _ = dpg.add_listbox(
                         items=list(map(str, self.font_library.sizes)),
                         callback=self.cb_fontsize,
                         tag=self.tag('fontsize'),

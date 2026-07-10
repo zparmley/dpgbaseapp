@@ -1,7 +1,8 @@
 import pathlib
 
 
-CACHE_PATH = pathlib.Path.home() / '.local/share/dpgbaseapp/'
-REPOS_PATH = CACHE_PATH / 'repos/'
-FONTS_PATH = CACHE_PATH / 'fonts/'
+SHARED_PATH = pathlib.Path.home() / '.local/share/dpgbaseapp/'
+CACHE_PATH = SHARED_PATH / 'cache/'
+REPOS_PATH = SHARED_PATH / 'repos/'
+FONTS_PATH = SHARED_PATH / 'fonts/'
 TINTED_PATH = REPOS_PATH / 'schemes/'

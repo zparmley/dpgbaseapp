@@ -3,10 +3,19 @@ import dataclasses
 import typing
 import uuid
 
+import dearpygui.dearpygui as dpg
+
 
 class Styler(typing.Protocol):
     def apply(self, target: str | int) -> None:
         ...
+
+@dataclasses.dataclass
+class GenericThemeStyler:
+    theme_tag: str | int
+
+    def apply(self, target: str | int) -> None:
+        dpg.bind_item_theme(target, self.theme_tag)
 
 
 class _DefaultDict[K, V]:
@@ -26,6 +35,9 @@ class TagStyler:
         if tag is None:
             tag = str(uuid.uuid4())
         self.tag_to_classes[tag].extend(classes)
+        for class_ in classes:
+            self.class_to_tags[class_].append(tag)
+
         self._apply_tag_buffer.append(tag)
 
         return tag
